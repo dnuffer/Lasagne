@@ -75,6 +75,22 @@ class Layer(object):
         """
         return []
 
+    def get_state(self):
+        """
+        Returns a list of variables that will be used to serialize out the layer.
+        The variables will be passed to the constructor to reconstitute the
+        layer.
+
+        :return:
+            - list
+                the list of variables
+
+        :note:
+            By default this returns `get_params()`, but it should be overridden
+            in a subclass that has non-trainable state variables.
+        """
+        return self.get_params()
+
     def get_output_shape(self):
         """
         Computes the output shape of the network at this layer.
