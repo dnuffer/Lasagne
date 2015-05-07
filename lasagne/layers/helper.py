@@ -48,14 +48,6 @@ def get_all_layers(layer):
             instance(s) either directly or indirectly, and the given
             instance(s) themselves, in topological order.
     """
-    import warnings
-    warnings.warn("get_all_layers() has been changed to return layers in "
-                  "topological order. The former implementation is still "
-                  "available as get_all_layers_old(), but will be removed "
-                  "before the first release of Lasagne. To ignore this "
-                  "warning, use `warnings.filterwarnings('ignore', "
-                  "'.*topo.*')`.")
-
     # We perform a depth-first search. We add a layer to the result list only
     # after adding all its incoming layers (if any) or when detecting a cycle.
     # We use a LIFO stack to avoid ever running into recursion depth limits.
