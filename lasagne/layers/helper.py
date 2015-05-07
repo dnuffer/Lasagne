@@ -12,8 +12,8 @@ __all__ = [
     "get_all_bias_params",
     "get_all_non_bias_params",
     "count_params",
-    "get_all_param_values",
-    "set_all_param_values",
+    "get_state_values",
+    "set_state_values",
 ]
 
 
@@ -124,6 +124,35 @@ def get_all_layers_old(layer):
         layers.extend(children)
 
     return layers
+
+
+def get_state_vars(layer):
+    """
+    This function gathers all learnable parameters of all layers below one
+    or more given :class:`Layer` instances, including the layer(s) itself.
+    Its main use is to collect all parameters of a network just given the
+    output layer(s).
+
+    :usage:
+        >>> from lasagne.layers import InputLayer, DenseLayer
+        >>> l_in = InputLayer((100, 20))
+        >>> l1 = DenseLayer(l_in, num_units=50)
+        >>> vars = get_state_vars(l1)
+        >>> vars == [l1.W, l1.b]
+        True
+
+    :parameters:
+        - layer : Layer or list
+            the :class:`Layer` instance for which to gather all parameters,
+            or a list of :class:`Layer` instances.
+
+    :returns:
+        - params : list
+            a list of Theano shared variables representing the parameters.
+    """
+    layers = get_all_layers(layer)
+    vars = sum([l.get_state() for l in layers], [])
+    return utils.unique(vars)
 
 
 def get_all_params(layer):
@@ -255,7 +284,7 @@ def count_params(layer):
     return sum(counts)
 
 
-def get_all_param_values(layer):
+def get_state_values(layer):
     """
     This function returns the values of the parameters of all layers below one
     or more given :class:`Layer` instances, including the layer(s) itself.
@@ -267,10 +296,10 @@ def get_all_param_values(layer):
         >>> from lasagne.layers import InputLayer, DenseLayer
         >>> l_in = InputLayer((100, 20))
         >>> l1 = DenseLayer(l_in, num_units=50)
-        >>> all_param_values = get_all_param_values(l1)
-        >>> (all_param_values[0] == l1.W.get_value()).all()
+        >>> state_values = get_state_values(l1)
+        >>> (state_values[0] == l1.W.get_value()).all()
         True
-        >>> (all_param_values[1] == l1.b.get_value()).all()
+        >>> (state_values[1] == l1.b.get_value()).all()
         True
 
     :parameters:
@@ -282,28 +311,28 @@ def get_all_param_values(layer):
         - param_values : list of numpy.array
             a list of numpy arrays representing the parameter values.
     """
-    params = get_all_params(layer)
+    params = get_state_vars(layer)
     return [p.get_value() for p in params]
 
 
-def set_all_param_values(layer, values):
+def set_state_values(layer, values):
     """
-    Given a list of numpy arrays, this function sets the parameters of all
+    Given a list of numpy arrays, this function sets the variables of all
     layers below one or more given :class:`Layer` instances (including the
     layer(s) itself) to the given values.
 
-    This function can be used in conjunction with get_all_param_values to save
+    This function can be used in conjunction with get_state_values to save
     and restore model parameters.
 
     :usage:
         >>> from lasagne.layers import InputLayer, DenseLayer
         >>> l_in = InputLayer((100, 20))
         >>> l1 = DenseLayer(l_in, num_units=50)
-        >>> all_param_values = get_all_param_values(l1)
-        >>> # all_param_values is now [l1.W.get_value(), l1.b.get_value()]
+        >>> all_state_values = get_state_values(l1)
+        >>> # all_state_values is now [l1.W.get_value(), l1.b.get_value()]
         >>> # ...
-        >>> set_all_param_values(l1, all_param_values)
-        >>> # the parameter values are restored.
+        >>> set_state_values(l1, all_state_values)
+        >>> # the variables values are restored.
 
     :parameters:
         - layer : Layer or list
@@ -313,9 +342,9 @@ def set_all_param_values(layer, values):
             a list of numpy arrays representing the parameter values,
             must match the number of parameters
     """
-    params = get_all_params(layer)
-    if len(params) != len(values):
+    vars = get_state_vars(layer)
+    if len(vars) != len(values):
         raise ValueError("mismatch: got %d values to set %d parameters" %
-                         (len(values), len(params)))
-    for p, v in zip(params, values):
+                         (len(values), len(vars)))
+    for p, v in zip(vars, values):
         p.set_value(v)
