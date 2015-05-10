@@ -26,7 +26,7 @@ class Objective(object):
     The  `get_loss` method returns cost expression useful for training or
     evaluating a network.
     """
-    def __init__(self, input_layer, loss_function=mse, aggregation='mean'):
+    def __init__(self, input_layer, loss_function=mse, aggregation='mean', regularization_function=None):
         """
         Constructor
 
@@ -49,6 +49,7 @@ class Objective(object):
             raise ValueError('aggregation must be \'mean\', \'sum\', '
                              'or None, not {0}'.format(aggregation))
         self.aggregation = aggregation
+        self.regularization_function = regularization_function
 
     def get_loss(self, input=None, target=None, aggregation=None, **kwargs):
         """
@@ -80,11 +81,16 @@ class Objective(object):
         losses = self.loss_function(network_output, target)
 
         if aggregation is None or aggregation == 'mean':
-            return losses.mean()
+            loss_fn = losses.mean()
         elif aggregation == 'sum':
-            return losses.sum()
+            loss_fn = losses.sum()
         else:
             raise RuntimeError('This should have been caught earlier')
+
+        if self.regularization_function is not None:
+            loss_fn = loss_fn + self.regularization_function
+
+        return loss_fn
 
 
 class MaskedObjective(object):
