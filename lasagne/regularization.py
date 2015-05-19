@@ -11,5 +11,12 @@ def l2(layer, include_biases=False):
 
     return sum(T.sum(p**2) for p in all_params)
 
+def l1(layer, include_biases=False):
+    if include_biases:
+        all_params = nn.layers.get_all_params(layer)
+    else:
+        all_params = nn.layers.get_all_non_bias_params(layer)
+
+    return sum(T.sum(abs(p)) for p in all_params)
 
 # TODO: sparsity regularization
