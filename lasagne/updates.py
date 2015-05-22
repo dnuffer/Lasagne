@@ -590,6 +590,7 @@ def norm_constraint(tensor_var, max_norm, norm_axes=None, epsilon=1e-7):
 
     return constrained_output
 
+
 def apply_max_norm_constraints_to_updates(updates, params_and_maximums):
     updates = OrderedDict(updates)
     for param, max_val in params_and_maximums:
@@ -598,15 +599,16 @@ def apply_max_norm_constraints_to_updates(updates, params_and_maximums):
 
     return updates
 
+
 def get_max_norm_params_and_maximums(layer):
     layers = get_all_layers(layer)
     result = []
     for layer in layers:
-        if hasattr(layer, 'max_col_norm'):
-            for param in layer.get_params():
-                result.append((param, layer.max_col_norm))
+        if hasattr(layer, 'max_col_norm') and hasattr(layer, 'W'):
+            result.append((layer.W, layer.max_col_norm))
 
     return result
+
 
 def apply_layers_max_norm_constraints(updates, layer_out):
     return apply_max_norm_constraints_to_updates(updates, get_max_norm_params_and_maximums(layer_out))
