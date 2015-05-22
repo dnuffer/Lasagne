@@ -47,6 +47,12 @@ class DenseLayer(Layer):
             The nonlinearity that is applied to the layer activations. If None
             is provided, the layer will be linear.
 
+        - max_col_norm : float or None
+            The max column norm value for this layer's weight matrix. The values
+            need to be rescaled as part of a training update, and take into
+            account the gradient descent change. Use updates.norm_constraint()
+            to modify the variable on top of the training algorithm.
+
     :usage:
         >>> from lasagne.layers import InputLayer, DenseLayer
         >>> l_in = InputLayer((100, 20))
@@ -54,6 +60,7 @@ class DenseLayer(Layer):
     """
     def __init__(self, incoming, num_units, W=init.GlorotUniform(),
                  b=init.Constant(0.), nonlinearity=nonlinearities.rectify,
+                 max_col_norm=None,
                  **kwargs):
         super(DenseLayer, self).__init__(incoming, **kwargs)
         self.nonlinearity = (nonlinearities.identity if nonlinearity is None
@@ -66,6 +73,7 @@ class DenseLayer(Layer):
         self.W = self.create_param(W, (num_inputs, num_units), name="W")
         self.b = (self.create_param(b, (num_units,), name="b")
                   if b is not None else None)
+        self.max_col_norm = max_col_norm
 
     def get_params(self):
         return [self.W] + self.get_bias_params()
