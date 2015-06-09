@@ -12,6 +12,7 @@ __all__ = [
     "get_all_bias_params",
     "get_all_non_bias_params",
     "count_params",
+    "get_state_vars",
     "get_state_values",
     "set_state_values",
 ]
